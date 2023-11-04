@@ -12,24 +12,6 @@ import time
 import os
 import copy
 
-# def print_value(sender):
-#     print(dpg.get_value(sender))
-
-# input_txt2 = dpg.add_input_text(
-#     label="InputTxt2",
-#     default_value="This is a default value!",
-#     callback=print_value
-# )
-
-# slider_float2 = dpg.add_slider_float(
-#         label="SliderFloat2",
-#         default_value=50.0,
-#         callback=print_value
-# )
-
-# input_txt1 = dpg.add_input_text()
-# dpg.set_item_callback(input_txt1, print_value)
-# print(dpg.get_value(input_txt1))
 
 DEFAULT_DATA_DIRECTORY = "data/hymenoptera_data"
 DEFAULT_BATCH_SIZE = 4
@@ -212,20 +194,20 @@ with dpg.window(width=300, pos=(0,0), autosize=True):
         devices.append("cuda:0")
     dpg_device = dpg.add_combo(label="Device", items=devices, default_value=DEFAULT_DEVICE)
 
-with dpg.window(width=300, pos=(0, 100), autosize=True):
+
     # dataset parameters
     with dpg.group():
         dpg_data_directory = dpg.add_input_text(label="Data Directory", default_value=DEFAULT_DATA_DIRECTORY)
         dpg_batch_size = dpg.add_input_int(label="Batch Size", default_value=DEFAULT_BATCH_SIZE)
         dpg_shuffle = dpg.add_checkbox(label="Shuffle", default_value=DEFAULT_SHUFFLE)
 
-with dpg.window(width=300, pos=(400, 0), autosize=True):
+
     with dpg.group():
         print("models = ", dict_model.keys())
         dpg_model = dpg.add_combo(label="Model", items=list(dict_model.keys()), default_value=DEFAULT_MODEL)
         dpg_fixed_fe = dpg.add_checkbox(label="Fixed Feature Extractor", default_value=DEFAULT_FIXED_FE)
 
-with dpg.window(width=300, pos=(400, 100), autosize=True):
+
     with dpg.group():
         # loss functions
         dpg_criterion = dpg.add_combo(label="Criterion", items=list(dict_criterion.keys()), default_value=DEFAULT_CRITERION)
@@ -238,7 +220,7 @@ with dpg.window(width=300, pos=(400, 100), autosize=True):
         dpg_step_size = dpg.add_input_int(label="Step Size", default_value=DEFAULT_STEP_SIZE)
         dpg_gamma = dpg.add_input_float(label="Gamma", default_value=DEFAULT_GAMMA)
 
-with dpg.window(width=300, pos=(400, 300), autosize=True):
+
     with dpg.group():
         dpg_num_epochs = dpg.add_input_int(label="Num Epochs", default_value=DEFAULT_NUM_EPOCHS)            
         dpg_train_btn = dpg.add_button(label="Train", callback=train)
