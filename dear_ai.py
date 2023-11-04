@@ -223,15 +223,17 @@ with dpg.window(width=300, pos=(400, 0), autosize=True):
     with dpg.group():
         print("models = ", dict_model.keys())
         dpg_model = dpg.add_combo(label="Model", items=list(dict_model.keys()), default_value=DEFAULT_MODEL)
-        #weights
         dpg_fixed_fe = dpg.add_checkbox(label="Fixed Feature Extractor", default_value=DEFAULT_FIXED_FE)
 
 with dpg.window(width=300, pos=(400, 100), autosize=True):
     with dpg.group():
+        # loss functions
         dpg_criterion = dpg.add_combo(label="Criterion", items=list(dict_criterion.keys()), default_value=DEFAULT_CRITERION)
+        # parameter optimization algorithm
         dpg_optimizer = dpg.add_combo(label="Optimizer", items=list(dict_optimizer.keys()), default_value=DEFAULT_OPTIMIZER)
         dpg_learning_rate = dpg.add_input_float(label="Learning Rate", default_value=DEFAULT_LEARNING_RATE)
         dpg_momentum = dpg.add_input_float(label="Momentum", default_value=DEFAULT_MOMENTUM)
+        # learning rate schedule
         dpg_scheduler = dpg.add_combo(label="Scheduler", items=list(dict_scheduler.keys()), default_value=DEFAULT_SCHEDULER)
         dpg_step_size = dpg.add_input_int(label="Step Size", default_value=DEFAULT_STEP_SIZE)
         dpg_gamma = dpg.add_input_float(label="Gamma", default_value=DEFAULT_GAMMA)
