@@ -5,6 +5,7 @@ from torch.optim import lr_scheduler
 import numpy as np
 import torchvision
 from torchvision import datasets, models, transforms
+from torch.utils.data.dataset import random_split
 import matplotlib.pyplot as plt
 import time
 import os
@@ -99,11 +100,11 @@ if __name__ == "__main__":
 
 
     ### --- DATASET CONFIGURATION AND SETUP
-    data_dir = 'data/hymenoptera_data'  # data directory
+    DATA_DIR = './data/flower_photos'  # data directory
 
     # fixed arrays for normalisation
-    mean = np.array([0.5, 0.5, 0.5])
-    std = np.array([0.25, 0.25, 0.25])
+    MEAN = np.array([0.5, 0.5, 0.5])
+    STD = np.array([0.25, 0.25, 0.25])
 
     data_transforms = {
         # transformation of images for training
@@ -111,20 +112,31 @@ if __name__ == "__main__":
             transforms.RandomResizedCrop(224),  # random crop to grab different part of image
             transforms.RandomHorizontalFlip(),  # random flipping to vary image
             transforms.ToTensor(),
-            transforms.Normalize(mean, std)     # normalises image for colour channels to be arround the centre
+            transforms.Normalize(MEAN, STD)     # normalises image for colour channels to be arround the centre
         ]),
         # transformation of images for validation
         'val': transforms.Compose([
             transforms.Resize(256),         # resize to standard
             transforms.CenterCrop(224),     # crop to object
             transforms.ToTensor(),          
-            transforms.Normalize(mean, std)
+            transforms.Normalize(MEAN, STD)
         ]),
     }
 
-    # create dictionary of image datasets for training and validation
-    image_datasets = {x: datasets.ImageFolder(os.path.join(data_dir, x), data_transforms[x])
-                        for x in ['train', 'val']}
+    # create dataset from folder structure
+    image_loader = datasets.ImageFolder(DATA_DIR)
+
+    # split into train and validation datasets according to ratio
+    TRAIN_VAL_RATIO = 0.2
+    val_size = int(TRAIN_VAL_RATIO * len(image_loader))
+    train_size = len(image_loader) - val_size
+    train_dataset, val_dataset = random_split(image_loader, [train_size, val_size])
+
+    # assemble into dataset dictionary and set transforms
+    image_datasets = {'train': train_dataset, 'val': val_dataset}
+    for key, val in image_datasets.items():
+        val.dataset.transform = data_transforms[key]
+    
     # create dictionary of dataloaders using dataset dictionary
     #   BATCH SIZE = 4;
     #   SHUFFLE = TRUE;
@@ -133,8 +145,8 @@ if __name__ == "__main__":
                         for x in ['train', 'val']}
     # create dictionary of dataset sizes for training and valuation
     dataset_sizes = {x: len(image_datasets[x]) for x in ['train', 'val']}
-    # get classes from training image dataset
-    class_names = image_datasets['train'].classes
+    # get classes from image loader
+    class_names = image_loader.classes
     print(class_names)
 
     # Get a batch (4) of training data
