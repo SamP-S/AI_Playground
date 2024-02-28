@@ -100,7 +100,7 @@ if __name__ == "__main__":
 
 
     ### --- DATASET CONFIGURATION AND SETUP
-    DATA_DIR = './data/flower_photos'  # data directory
+    DATA_DIR = "./data/bricks/26_bricks_augmented"
 
     # fixed arrays for normalisation
     MEAN = np.array([0.5, 0.5, 0.5])
