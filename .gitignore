@@ -1,6 +1,7 @@
 # Custom directories
 data
 *.bin
+models
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

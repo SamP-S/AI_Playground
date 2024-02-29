@@ -78,19 +78,23 @@ def train_model(model, criterion, optimizer, scheduler, hp):
             if phase == "train":
                 scheduler.step()
 
-            phase_loss = np.sum(losses[phase]) / dataset_sizes[phase]
-            phase_acc = np.sum(accuracies[phase]) / dataset_sizes[phase]
+            phase_loss = np.mean(losses[phase])
+            phase_acc = np.mean(accuracies[phase])
 
-            df_results = pd.DataFrame({
+            df_train = pd.DataFrame({
                 "train_loss": losses["train"],
-                "train_acc": accuracies["train"],
+                "train_acc": accuracies["train"]
+            })
+
+            df_eval = pd.DataFrame({
                 "eval_loss": losses["val"],
                 "eval_acc": accuracies["val"]
             })
 
             print(f"{phase}: \tloss={phase_loss:.4f}, \tacc={phase_acc:.4f}")
-            torch.save(model, os.path.join(hp.MODEL_DIR, hp.MODEL_NAME, f"_{epoch}.bin"))
-            df_results.to_csv(os.path.join(hp.MODEL_DIR, hp.MODEL_NAME, f"_{epoch}_eval.csv"))
+            torch.save(model, os.path.join(hp.MODEL_DIR, hp.MODEL_NAME + f"_{epoch}.bin"))
+            df_train.to_csv(os.path.join(hp.MODEL_DIR, hp.MODEL_NAME + f"_{epoch}_train.csv"))
+            df_eval.to_csv(os.path.join(hp.MODEL_DIR, hp.MODEL_NAME + f"_{epoch}_eval.csv"))
 
             if phase == "val":
                 if phase_acc > best_acc:
@@ -98,10 +102,11 @@ def train_model(model, criterion, optimizer, scheduler, hp):
                     best_model = copy.deepcopy(model.state_dict())
 
     time_elapsed = time.time() - since
-    print(f'Training complete in {time_elapsed // 60}m {time_elapsed % 60}s')
+    print(f'Training complete in {int(time_elapsed // 60)}m {time_elapsed % 60:.2f}s')
 
     # load best model weights
-    model.load_state_dict(model)
+    model.load_state_dict(best_model)
+    print(f"best model: acc={best_acc}")
     return model
 
 
@@ -109,8 +114,8 @@ if __name__ == "__main__":
     hy_params = HyperParams()
     hy_params.LOAD_FROM = None
     hy_params.NUM_EPOCHS = 24
-    hy_params.DATA_DIR = "./data/bugs"
-    hy_params.MODEL_DIR = setup_output_dir("./models/bugs")
+    hy_params.DATA_DIR = "./data/lego_v2"
+    hy_params.MODEL_DIR = setup_output_dir("./models/lego_v2")
     hy_params.MODEL_NAME = "resnet"
 
     ### --- PARALLELISE TRAINING
