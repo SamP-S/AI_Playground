@@ -23,6 +23,7 @@ def setup_output_dir(path):
     os.makedirs(path, exist_ok=True)
     v_path = get_next_version(path)
     os.mkdir(v_path)
+    print(f"INFO: created dir @ {v_path}")
     return v_path
 
 if __name__ == "__main__":
