@@ -114,8 +114,8 @@ if __name__ == "__main__":
     hy_params = HyperParams()
     hy_params.LOAD_FROM = None
     hy_params.NUM_EPOCHS = 24
-    hy_params.DATA_DIR = "./data/lego_v2"
-    hy_params.MODEL_DIR = setup_output_dir("./models/lego_v2")
+    hy_params.DATA_DIR = "./data/26_bricks_augmented_half"
+    hy_params.MODEL_DIR = setup_output_dir("./models/26_bricks_augmented_half")
     hy_params.MODEL_NAME = "resnet"
 
     ### --- PARALLELISE TRAINING
