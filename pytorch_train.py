@@ -113,7 +113,7 @@ if __name__ == "__main__":
     hy_params.BATCH_SIZE = 32
     hy_params.DATA_DIR = "data/augmented/old_26"
     hy_params.MODEL_DIR = setup_output_dir("data/models/old_26")
-    hy_params.MODEL_NAME = "alexnet"
+    hy_params.MODEL_NAME = "convnext_tiny"
 
     ### --- PARALLELISE TRAINING
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
@@ -161,13 +161,13 @@ if __name__ == "__main__":
     if (hy_params.MODEL_NAME == "resnet18"):
         model = models.resnet18(weights=models.ResNet18_Weights.DEFAULT)
     elif (hy_params.MODEL_NAME == "resnet34"):
-        model = models.resnet34(weights=models.ResNet50_Weights.DEFAULT)
+        model = models.resnet34(weights=models.ResNet34_Weights.DEFAULT)
     elif (hy_params.MODEL_NAME == "resnet50"):
         model = models.resnet50(weights=models.ResNet50_Weights.DEFAULT)
     elif (hy_params.MODEL_NAME == "resnet101"):
-        model = models.resnet101(weights=models.ResNet50_Weights.DEFAULT)
+        model = models.resnet101(weights=models.ResNet101_Weights.DEFAULT)
     elif (hy_params.MODEL_NAME == "resnet152"):
-        model = models.resnet152(weights=models.ResNet50_Weights.DEFAULT)
+        model = models.resnet152(weights=models.ResNet152_Weights.DEFAULT)
     elif (hy_params.MODEL_NAME == "mobilenet_v3_large"):
         model = models.mobilenet_v3_large(weights=models.MobileNet_V3_Large_Weights.DEFAULT)
         model.fc = model.classifier[-1]
@@ -177,6 +177,33 @@ if __name__ == "__main__":
     elif (hy_params.MODEL_NAME == "alexnet"):
         model = models.alexnet(weights=models.AlexNet_Weights.DEFAULT)
         model.fc = model.classifier[-1]
+    elif (hy_params.MODEL_NAME == "convnext_base"):
+        model = models.convnext_base(weights=models.ConvNeXt_Base_Weights.DEFAULT)
+        model.fc = model.classifier[-1]
+    elif (hy_params.MODEL_NAME == "convnext_large"):
+        model = models.convnext_large(weights=models.ConvNeXt_Large_Weights.DEFAULT)
+        model.fc = model.classifier[-1]
+    elif (hy_params.MODEL_NAME == "convnext_small"):
+        model = models.convnext_small(weights=models.ConvNeXt_Small_Weights.DEFAULT)
+        model.fc = model.classifier[-1]
+    elif (hy_params.MODEL_NAME == "convnext_tiny"):
+        model = models.convnext_tiny(weights=models.ConvNeXt_Tiny_Weights.DEFAULT)
+        model.fc = model.classifier[-1]
+    # elif (hy_params.MODEL_NAME == "vit_b_16"):
+    #     model = models.vit_b_16(weights=models.ViT_B_16_Weights.DEFAULT)
+    #     model.fc = model.classifier[-1]
+    # elif (hy_params.MODEL_NAME == "vit_b_32"):
+    #     model = models.vit_b_32(weights=models.ViT_B_32_Weights.DEFAULT)
+    #     model.fc = model.classifier[-1]
+    # elif (hy_params.MODEL_NAME == "vit_b_16"):
+    #     model = models.vit_h_14(weights=models.ViT_H_14_Weights.DEFAULT)
+    #     model.fc = model.classifier[-1]
+    # elif (hy_params.MODEL_NAME == "vit_b_16"):
+    #     model = models.vit_l_16(weights=models.ViT_L_16_Weights.DEFAULT)
+    #     model.fc = model.classifier[-1]
+    # elif (hy_params.MODEL_NAME == "vit_b_16"):
+    #     model = models.vit_l_32(weights=models.ViT_L_32_Weights.DEFAULT)
+    #     model.fc = model.classifier[-1]
     else:
         print(f"ERROR: Invalid model name @ {hy_params.MODEL_NAME}")
         sys.exit()
