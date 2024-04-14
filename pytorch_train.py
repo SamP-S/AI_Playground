@@ -13,6 +13,7 @@ import copy
 from tqdm import tqdm
 import pandas as pd
 import sys
+import argparse
 
 from setup_env import setup_output_dir
 
@@ -31,6 +32,16 @@ def train_model(model, criterion, optimizer, scheduler, hp):
     best_model = copy.deepcopy(model.state_dict())
     best_acc = 0.0
 
+    epoch_losses = {
+        "train": np.zeros(shape=(hp.NUM_EPOCHS), dtype=np.float32),
+        "val": np.zeros(shape=(hp.NUM_EPOCHS), dtype=np.float32),
+    }
+
+    epoch_accuracies = {
+        "train": np.zeros(shape=(hp.NUM_EPOCHS), dtype=np.float32),
+        "val": np.zeros(shape=(hp.NUM_EPOCHS), dtype=np.float32),
+    }
+
     for epoch in range(hp.NUM_EPOCHS):
         print(f"Epoch {epoch}/{hp.NUM_EPOCHS - 1}") 
         print("-----------------")
@@ -46,7 +57,6 @@ def train_model(model, criterion, optimizer, scheduler, hp):
             "val": np.zeros(shape=(len(dataloaders["val"])), dtype=np.float32),
         }
 
-        # Each epoch has a training and validation phase
         for phase in ['train', 'val']:
             if phase == 'train':
                 model.train()
@@ -68,34 +78,41 @@ def train_model(model, criterion, optimizer, scheduler, hp):
                         loss.backward()
                         optimizer.step()
 
-                losses[phase][idx] = loss.item() * inputs.size(0)
-                accuracies[phase][idx] = torch.sum(preds == labels.data) / len(labels)
+                batch_loss = loss.item() * inputs.size(0)
+                batch_acc = torch.sum(preds == labels.data) / len(labels)
+                losses[phase][idx] = batch_loss
+                accuracies[phase][idx] = batch_acc
+                #print(f"{phase} batch: \tloss={batch_loss:.4f}, \tacc={batch_acc:.4f}")
 
             if phase == "train":
                 scheduler.step()
-
+            
+            # print(accuracies[phase])
             phase_loss = np.mean(losses[phase])
             phase_acc = np.mean(accuracies[phase])
-
-            df_train = pd.DataFrame({
-                "train_loss": losses["train"],
-                "train_acc": accuracies["train"]
-            })
-
-            df_eval = pd.DataFrame({
-                "eval_loss": losses["val"],
-                "eval_acc": accuracies["val"]
-            })
-
             print(f"{phase}: \tloss={phase_loss:.4f}, \tacc={phase_acc:.4f}")
-            torch.save(model, os.path.join(hp.MODEL_DIR, hp.MODEL_NAME + f"_{epoch}.bin"))
-            df_train.to_csv(os.path.join(hp.MODEL_DIR, hp.MODEL_NAME + f"_{epoch}_train.csv"))
-            df_eval.to_csv(os.path.join(hp.MODEL_DIR, hp.MODEL_NAME + f"_{epoch}_eval.csv"))
 
-            if phase == "val":
-                if phase_acc > best_acc:
-                    best_acc = phase_acc
-                    best_model = copy.deepcopy(model.state_dict())
+            epoch_losses[phase][epoch] = phase_loss
+            epoch_accuracies[phase][epoch] = phase_acc
+
+        # keep track of best model
+        if phase == "val":
+            if phase_acc > best_acc:
+                best_acc = phase_acc
+                best_model = copy.deepcopy(model.state_dict())
+
+        # save model after both phases
+        torch.save(model, os.path.join(hp.MODEL_DIR, hp.MODEL_NAME + f"_{epoch}.bin"))
+            
+    # store accs/loss per epoch
+    df_perf = pd.DataFrame({
+        "train_loss": epoch_losses["train"],
+        "train_acc": epoch_accuracies["train"],
+        "eval_loss": epoch_losses["val"],
+        "eval_acc": epoch_accuracies["val"]
+    })
+        
+    df_perf.to_csv(os.path.join(hp.MODEL_DIR, hp.MODEL_NAME + f"_perf.csv"), index=False)
 
     time_elapsed = time.time() - since
     print(f'Training complete in {int(time_elapsed // 60)}m {time_elapsed % 60:.2f}s')
@@ -107,17 +124,37 @@ def train_model(model, criterion, optimizer, scheduler, hp):
 
 
 if __name__ == "__main__":
+    start_time = time.time()
+
+    parser = argparse.ArgumentParser(description='Hyperparameters for the model')
+    parser.add_argument('--LOAD_FROM', type=str, help='The model to load from')
+    parser.add_argument('--NUM_EPOCHS', type=int, help='The number of epochs', default=25)
+    parser.add_argument('--BATCH_SIZE', type=int, help='The batch size', default=32)
+    parser.add_argument('--DATA_DIR', type=str, help='The data directory', default="data/bricks/15k_cycles")
+    parser.add_argument('--MODEL_DIR', type=str, help='The model directory', default="data/models/15k_cycles")
+    parser.add_argument('--MODEL_NAME', type=str, help='The model name', default="resnet50")
+    parser.add_argument('--USE_GPU', type=int, help='Use GPU if available', default=1)
+    args = parser.parse_args()
+
+    # Assign the arguments to hy_params
     hy_params = HyperParams()
-    hy_params.LOAD_FROM = None
-    hy_params.NUM_EPOCHS = 24
-    hy_params.BATCH_SIZE = 32
-    hy_params.DATA_DIR = "data/augmented/old_26"
-    hy_params.MODEL_DIR = setup_output_dir("data/models/old_26")
-    hy_params.MODEL_NAME = "convnext_tiny"
+    print(args.LOAD_FROM)
+    hy_params.LOAD_FROM = args.LOAD_FROM
+    hy_params.NUM_EPOCHS = args.NUM_EPOCHS
+    hy_params.BATCH_SIZE = args.BATCH_SIZE
+    hy_params.DATA_DIR = args.DATA_DIR
+    hy_params.MODEL_DIR = args.MODEL_DIR
+    hy_params.MODEL_NAME = args.MODEL_NAME
+
+    if not os.path.exists(args.MODEL_DIR):
+        os.mkdir(args.MODEL_DIR)
 
     ### --- PARALLELISE TRAINING
-    device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-    print ("DEVICE: ", device)
+    print(f"USE_GPU = {args.USE_GPU}")
+    device = "cpu"
+    if args.USE_GPU:
+        device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+        print ("DEVICE: ", device)
 
     ### --- DATASET CONFIGURATION AND SETUP
     MEAN = np.array([0.5, 0.5, 0.5])
@@ -138,22 +175,21 @@ if __name__ == "__main__":
         ]),
     }
 
-    image_loader = datasets.ImageFolder(hy_params.DATA_DIR)
+    # load images from seperate folders
+    train_dir = os.path.join(hy_params.DATA_DIR, 'train')
+    val_dir = os.path.join(hy_params.DATA_DIR, 'val')
+    image_datasets = {
+        'train': datasets.ImageFolder(train_dir, transform=data_transforms['train']),
+        'val': datasets.ImageFolder(val_dir, transform=data_transforms['val'])
+    }
 
-    TRAIN_VAL_RATIO = 0.2
-    val_size = int(TRAIN_VAL_RATIO * len(image_loader))
-    train_size = len(image_loader) - val_size
-    train_dataset, val_dataset = random_split(image_loader, [train_size, val_size])
-
-    image_datasets = {'train': train_dataset, 'val': val_dataset}
-    for key, val in image_datasets.items():
-        val.dataset.transform = data_transforms[key]
-    
-    dataloaders = {x: torch.utils.data.DataLoader(image_datasets[x], batch_size=hy_params.BATCH_SIZE, shuffle=True, num_workers=0)
-                        for x in ['train', 'val']}
+    dataloaders = {
+        x: torch.utils.data.DataLoader(image_datasets[x], batch_size=hy_params.BATCH_SIZE, shuffle=True, num_workers=32)
+        for x in ['train', 'val']
+    }
 
     dataset_sizes = {x: len(image_datasets[x]) for x in ['train', 'val']}
-    class_names = image_loader.classes
+    class_names = image_datasets['train'].classes
     print(class_names)
 
     ### --- MODEL CONFIGURATION
@@ -225,3 +261,5 @@ if __name__ == "__main__":
 
     model = train_model(model, criterion, optimizer, step_lr_scheduler, hp=hy_params)
 
+    dt = time.time() - start_time
+    print(f"finished in {dt:.3f}s == {dt/60:.3f}m == {dt / (60*60):.3f}")
