@@ -63,6 +63,7 @@ def train_model(model, criterion, optimizer, scheduler, hp):
             else:
                 model.eval()
 
+            batch_count = len(dataloaders[phase])
             for idx, (inputs, labels) in enumerate(tqdm(dataloaders[phase])):
                 inputs = inputs.to(device)
                 labels = labels.to(device)
@@ -80,9 +81,21 @@ def train_model(model, criterion, optimizer, scheduler, hp):
 
                 batch_loss = loss.item() * inputs.size(0)
                 batch_acc = torch.sum(preds == labels.data) / len(labels)
+                # print(f"batch {idx+1}/{batch_count} - epoch {epoch+1}/{hp.NUM_EPOCHS} :\tloss={batch_loss:.4f}, \tacc={batch_acc:.4f}")
+                
+                # print("outputs:")
+                # print(outputs)
+                # print("predictions:")
+                # print(preds)
+                # print("labels:")
+                # print(labels)
+                # print("acc:")
+                # print(preds == labels.data)
+                # print("sizes")
+                # print(len(preds))
+                # print(len(labels))
                 losses[phase][idx] = batch_loss
                 accuracies[phase][idx] = batch_acc
-                #print(f"{phase} batch: \tloss={batch_loss:.4f}, \tacc={batch_acc:.4f}")
 
             if phase == "train":
                 scheduler.step()
@@ -90,7 +103,7 @@ def train_model(model, criterion, optimizer, scheduler, hp):
             # print(accuracies[phase])
             phase_loss = np.mean(losses[phase])
             phase_acc = np.mean(accuracies[phase])
-            print(f"{phase}: \tloss={phase_loss:.4f}, \tacc={phase_acc:.4f}")
+            print(f"{phase}: \tloss={phase_loss:.4f}, \tacc={phase_acc:.4f}\n")
 
             epoch_losses[phase][epoch] = phase_loss
             epoch_accuracies[phase][epoch] = phase_acc
@@ -190,7 +203,7 @@ if __name__ == "__main__":
 
     dataset_sizes = {x: len(image_datasets[x]) for x in ['train', 'val']}
     class_names = image_datasets['train'].classes
-    print(class_names)
+    print(f"total num classes = {len(class_names)} : {class_names}")
 
     ### --- MODEL CONFIGURATION
     model = None
