@@ -23,14 +23,17 @@ function train_model() {
     echo "finish training $model @ $ds"
 }
 
-train_model "resnet50" "mix_add_bg_nLEGO"
-train_model "resnet50" "mix_add_bg_wLEGO"
-train_model "resnet50" "mix_light_post_nLEGO"
-train_model "resnet50" "mix_light_post_wLEGO"
-train_model "resnet50" "mix_medium_post_nLEGO"
-train_model "resnet50" "mix_medium_post_wLEGO"
-train_model "resnet50" "mix_raw_nLEGO"
-train_model "resnet50" "mix_raw_wLEGO"
-train_model "resnet50" "mix_strong_post_nLEGO"
-train_model "resnet50" "mix_strong_post_wLEGO"
-train_model "resnet50" "real"
+#train_model "resnet50" "mix_add_bg_nLEGO"
+#train_model "resnet50" "mix_add_bg_wLEGO"
+#train_model "resnet50" "mix_light_post_nLEGO"
+#train_model "resnet50" "mix_light_post_wLEGO"
+#train_model "resnet50" "mix_medium_post_nLEGO"
+#train_model "resnet50" "mix_medium_post_wLEGO"
+#train_model "resnet50" "mix_raw_nLEGO"
+#train_model "resnet50" "mix_raw_wLEGO"
+#train_model "resnet50" "mix_strong_post_nLEGO"
+#train_model "resnet50" "mix_strong_post_wLEGO"
+#train_model "resnet50" "real"
+
+train_model "mobilenet_v3_large" "mix_medium_post_nLEGO"
+
